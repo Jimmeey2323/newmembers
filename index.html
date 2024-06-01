@@ -114,43 +114,44 @@
         }
 
         async function fetchAndDisplayData() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('progressBar').innerText = '0%';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('progressBar').innerText = '0%';
 
-            const cookie = await authenticateAndGetCookie();
-            if (!cookie) {
-                document.getElementById('loading').style.display = 'none';
-                return;
-            }
+    const cookie = await authenticateAndGetCookie();
+    if (!cookie) {
+        document.getElementById('loading').style.display = 'none';
+        return;
+    }
 
-            const trainerName = document.getElementById('trainerName').value;
-            const date = document.getElementById('date').value;
+    const trainerName = document.getElementById('trainerName').value;
+    const date = document.getElementById('date').value;
 
-            let allData = [];
-            const totalUrls = endpoints.New.length;
-            let processedUrls = 0;
+    let allData = [];
+    const totalUrls = endpoints.New.length;
+    let processedUrls = 0;
 
-            for (const dataUrl of endpoints.New) {
-                const responseData = await fetchDataFromApi(dataUrl, cookie);
-                processedUrls++;
+    for (const dataUrl of endpoints.New) {
+        const responseData = await fetchDataFromApi(dataUrl, cookie);
+        processedUrls++;
 
-                if (responseData) {
-                    const filteredItems = responseData.items.filter(item => {
-                        return !(excludedMemberIds.includes(item.memberId) || excludedMembershipTypes.includes(item.membershipUsed) || item.paymentMethod === "pay-later") && item.trainer === trainerName && item.date === date;
-                    });
-                    allData = allData.concat(filteredItems);
-                }
-
-                // Update progress bar
-                const progress = Math.round((processedUrls / totalUrls) * 100);
-                document.getElementById('progressBar').style.width = progress + '%';
-                document.getElementById('progressBar').innerText = progress + '%';
-            }
-
-            document.getElementById('loading').style.display = 'none';
-            displayDataInTable(allData);
+        if (responseData) {
+            const filteredItems = responseData.items.filter(item => {
+                return !(excludedMemberIds.includes(item.memberId) || excludedMembershipTypes.includes(item.membershipUsed) || item.paymentMethod === "pay-later") && item.trainer === trainerName && item.date === date;
+            });
+            allData = allData.concat(filteredItems);
         }
+
+        // Update progress bar
+        const progress = Math.round((processedUrls / totalUrls) * 100);
+        document.getElementById('progressBar').style.width = progress + '%';
+        document.getElementById('progressBar').innerText = progress + '%';
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    displayDataInTable(allData);
+}
+
 
         function displayDataInTable(data) {
             const tableContainer = document.getElementById('tableContainer');
