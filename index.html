@@ -26,6 +26,20 @@
             text-align: center;
             margin-top: 20px;
         }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #f2f2f2;
+            border-radius: 25px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4caf50;
+            text-align: center;
+            color: white;
+            border-radius: 25px;
+        }
     </style>
 </head>
 <body>
@@ -39,7 +53,11 @@
         <select id="date"></select>
     </div>
     <button onclick="fetchAndDisplayData()">Go</button>
-    <div class="loading" id="loading">Loading data...</div>
+    <div class="loading" id="loading">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+    </div>
     <div id="tableContainer"></div>
 
     <script>
@@ -97,6 +115,9 @@
 
         async function fetchAndDisplayData() {
             document.getElementById('loading').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').innerText = '0%';
+
             const cookie = await authenticateAndGetCookie();
             if (!cookie) {
                 document.getElementById('loading').style.display = 'none';
@@ -107,15 +128,24 @@
             const date = document.getElementById('date').value;
 
             let allData = [];
+            const totalUrls = endpoints.New.length;
+            let processedUrls = 0;
+
             for (const dataUrl of endpoints.New) {
                 const responseData = await fetchDataFromApi(dataUrl, cookie);
-                if (!responseData) continue;
+                processedUrls++;
 
-                const filteredItems = responseData.items.filter(item => {
-                    return !(excludedMemberIds.includes(item.memberId) || excludedMembershipTypes.includes(item.membershipUsed) || item.paymentMethod === "pay-later") && item.trainer === trainerName && item.date === date;
-                });
+                if (responseData) {
+                    const filteredItems = responseData.items.filter(item => {
+                        return !(excludedMemberIds.includes(item.memberId) || excludedMembershipTypes.includes(item.membershipUsed) || item.paymentMethod === "pay-later") && item.trainer === trainerName && item.date === date;
+                    });
+                    allData = allData.concat(filteredItems);
+                }
 
-                allData = allData.concat(filteredItems);
+                // Update progress bar
+                const progress = Math.round((processedUrls / totalUrls) * 100);
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('progressBar').innerText = progress + '%';
             }
 
             document.getElementById('loading').style.display = 'none';
