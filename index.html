@@ -131,25 +131,31 @@
     const totalUrls = endpoints.New.length;
     let processedUrls = 0;
 
-    for (const dataUrl of endpoints.New) {
-        const responseData = await fetchDataFromApi(dataUrl, cookie);
-        processedUrls++;
+    try {
+        for (const dataUrl of endpoints.New) {
+            const responseData = await fetchDataFromApi(dataUrl, cookie);
+            processedUrls++;
 
-        if (responseData) {
-            const filteredItems = responseData.items.filter(item => {
-                return !(excludedMemberIds.includes(item.memberId) || excludedMembershipTypes.includes(item.membershipUsed) || item.paymentMethod === "pay-later") && item.trainer === trainerName && item.date === date;
-            });
-            allData = allData.concat(filteredItems);
+            if (responseData) {
+                const filteredItems = responseData.items.filter(item => {
+                    return !(excludedMemberIds.includes(item.memberId) || excludedMembershipTypes.includes(item.membershipUsed) || item.paymentMethod === "pay-later") && item.trainer === trainerName && item.date === date;
+                });
+                allData = allData.concat(filteredItems);
+            }
+
+            // Update progress bar
+            const progress = Math.round((processedUrls / totalUrls) * 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressBar').innerText = progress + '%';
         }
 
-        // Update progress bar
-        const progress = Math.round((processedUrls / totalUrls) * 100);
-        document.getElementById('progressBar').style.width = progress + '%';
-        document.getElementById('progressBar').innerText = progress + '%';
+        document.getElementById('loading').style.display = 'none';
+        console.log('Data loaded successfully:', allData);
+        displayDataInTable(allData);
+    } catch (error) {
+        console.error('Error fetching or processing data:', error);
+        document.getElementById('loading').style.display = 'none';
     }
-
-    document.getElementById('loading').style.display = 'none';
-    displayDataInTable(allData);
 }
 
 
